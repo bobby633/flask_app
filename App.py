@@ -16,7 +16,7 @@ import pickle
 import pandas as pd
 import nltk
 ##download once
-nltk.download("stopwords")
+
 from datetime import datetime,timedelta
 from nltk.corpus import stopwords
 from profanity_filter import ProfanityFilter 
@@ -313,6 +313,6 @@ if __name__ == "__main__":
     #when finished remove this 
     db.create_all()
     
-    app.run(debug=True)
+    app.run()
 
   
