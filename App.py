@@ -2,7 +2,7 @@
 
 from flask import Flask,render_template,request,redirect,session,url_for
 from flask_sqlalchemy import SQLAlchemy
-from markupsafe import escape
+
 
 
 from keras.preprocessing.text import Tokenizer
@@ -16,10 +16,10 @@ import pickle
 import pandas as pd
 import nltk
 ##download once
-
+nltk.download("stopwords")
 from datetime import datetime,timedelta
 from nltk.corpus import stopwords
-from profanity_filter import ProfanityFilter 
+
 
 
 
@@ -34,7 +34,7 @@ db = SQLAlchemy(app)
 
 #will remove tensorflow texts in terminal
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
-pf = ProfanityFilter()#Nsfw words catcher
+
 
 # tweepy Credentials
 consumer_key= "Q28ELSx65m8jOSYk0iaZzSye4"
@@ -93,49 +93,48 @@ def search():
         amount = int(request.form['amount'])
         
         user = session['user']
-        if pf.is_clean(search):
-            tweets = tweepy.Cursor(api.search_tweets,q=f'{search} - filter:retweets', lang="en").items(amount)
-            df = pd.DataFrame([tweet.text for tweet in tweets], columns= ['tweets'] )
-            
-            df['tweets'] = clean_text(df["tweets"])
-            df['tweets'] = df['tweets'].apply(remove_stopwords)
-            #df['results'] = df['tweets'].apply(predict_class)
-            df['sentiment'] = df['tweets'].apply(lambda tweets : predict_class([tweets]))
-            #seperating the data into new data
-            positive = df.loc[df['sentiment'] == 'Positive'].count()[0]
-            negative = df.loc[df['sentiment'] == 'Negative'].count()[0]
-            neutral = df.loc[df['sentiment'] == 'Neutral'].count()[0]
 
-            #most recent data before updated
-            all_results = Result_model.query.filter_by(user = user,search = search).all()
-            user_results = Result_model.query.filter_by(user = user,search = search).all()
-            ress = user_results
-            results = all_results
-            if not results :
-                oldNegative = 0
-                oldNeutral = 0
-                oldPositive = 0
+        tweets = tweepy.Cursor(api.search_tweets,q=f'{search} - filter:retweets', lang="en").items(amount)
+        df = pd.DataFrame([tweet.text for tweet in tweets], columns= ['tweets'] )
+        
+        df['tweets'] = clean_text(df["tweets"])
+        df['tweets'] = df['tweets'].apply(remove_stopwords)
+        #df['results'] = df['tweets'].apply(predict_class)
+        df['sentiment'] = df['tweets'].apply(lambda tweets : predict_class([tweets]))
+        #seperating the data into new data
+        positive = df.loc[df['sentiment'] == 'Positive'].count()[0]
+        negative = df.loc[df['sentiment'] == 'Negative'].count()[0]
+        neutral = df.loc[df['sentiment'] == 'Neutral'].count()[0]
+
+        #most recent data before updated
+        all_results = Result_model.query.filter_by(user = user,search = search).all()
+        user_results = Result_model.query.filter_by(user = user,search = search).all()
+        ress = user_results
+        results = all_results
+        if not results :
+            oldNegative = 0
+            oldNeutral = 0
+            oldPositive = 0
+            completed = Result_model(user,search,str(positive),str(negative),str(neutral)) 
+            db.session.add(completed)
+            db.session.commit() 
+            return render_template('/results.html',ress = ress, search = search ,positive=positive,negative=negative,neutral=neutral,oldPositive=oldPositive,oldNegative=oldNegative,oldNeutral=oldNeutral,text = [df.to_html()])
+        else:
+                results = all_results[-1]
+                oldPositive = int(results.positive)
+                
+                
+                oldNegative = int(results.negative)
+
+                oldNeutral = int(results.neutral)
+
+
                 completed = Result_model(user,search,str(positive),str(negative),str(neutral)) 
                 db.session.add(completed)
                 db.session.commit() 
+
                 return render_template('/results.html',ress = ress, search = search ,positive=positive,negative=negative,neutral=neutral,oldPositive=oldPositive,oldNegative=oldNegative,oldNeutral=oldNeutral,text = [df.to_html()])
-            else:
-                    results = all_results[-1]
-                    oldPositive = int(results.positive)
-                   
-                    
-                    oldNegative = int(results.negative)
-   
-                    oldNeutral = int(results.neutral)
 
-
-                    completed = Result_model(user,search,str(positive),str(negative),str(neutral)) 
-                    db.session.add(completed)
-                    db.session.commit() 
-
-                    return render_template('/results.html',ress = ress, search = search ,positive=positive,negative=negative,neutral=neutral,oldPositive=oldPositive,oldNegative=oldNegative,oldNeutral=oldNeutral,text = [df.to_html()])
-        else:
-            return render_template('/search.html')
     return render_template('/search.html')
 
 @app.route('/search-user',methods=['GET','POST'])
@@ -145,51 +144,50 @@ def search_user():
         amount = int(request.form['amount'])
         
         user = session['user']
-        if pf.is_clean(search):
-            post = api.user_timeline(screen_name = search,count=amount,tweet_mode="extended")
-            #Create a DF 
-            df = pd.DataFrame([tweet.full_text for tweet in post], columns=['tweets'])
-            df['tweets'] = clean_text(df["tweets"])
-            df['tweets'] = df['tweets'].apply(remove_stopwords)
-            #df['results'] = df['tweets'].apply(predict_class)
-            df['sentiment'] = df['tweets'].apply(lambda tweets : predict_class([tweets]))
-            #seperating the data into new data
-            positive = df.loc[df['sentiment'] == 'Positive'].count()[0]
-            negative = df.loc[df['sentiment'] == 'Negative'].count()[0]
-            neutral = df.loc[df['sentiment'] == 'Neutral'].count()[0]
 
-            #most recent data before updated
-            all_results = Result_model.query.filter_by(user = user,search = search).all()
-            user_results = Result_model.query.filter_by(user = user,search = search).all()
-            ress = user_results
-            results = all_results
-            if not results :
-                oldNegative = 0
-                oldNeutral = 0
-                oldPositive = 0
+        post = api.user_timeline(screen_name = search,count=amount,tweet_mode="extended")
+        #Create a DF 
+        df = pd.DataFrame([tweet.full_text for tweet in post], columns=['tweets'])
+        df['tweets'] = clean_text(df["tweets"])
+        df['tweets'] = df['tweets'].apply(remove_stopwords)
+        #df['results'] = df['tweets'].apply(predict_class)
+        df['sentiment'] = df['tweets'].apply(lambda tweets : predict_class([tweets]))
+        #seperating the data into new data
+        positive = df.loc[df['sentiment'] == 'Positive'].count()[0]
+        negative = df.loc[df['sentiment'] == 'Negative'].count()[0]
+        neutral = df.loc[df['sentiment'] == 'Neutral'].count()[0]
+
+        #most recent data before updated
+        all_results = Result_model.query.filter_by(user = user,search = search).all()
+        user_results = Result_model.query.filter_by(user = user,search = search).all()
+        ress = user_results
+        results = all_results
+        if not results :
+            oldNegative = 0
+            oldNeutral = 0
+            oldPositive = 0
+            completed = Result_model(user,search,positive,negative,neutral) 
+            db.session.add(completed)
+            db.session.commit() 
+            return render_template('/results.html',ress = ress, search = search ,positive=positive,negative=negative,neutral=neutral,oldPositive=oldPositive,oldNegative=oldNegative,oldNeutral=oldNeutral,text = [df.to_html()])
+        else:
+                results = all_results[-1]
+                oldPositive = results.positive
+                oldPositive =  list(oldPositive)[::-1]
+                oldPositive =   oldPositive[-1]
+                oldNegative = results.negative
+                oldNegative =  list(oldNegative)[::-1]
+                oldNegative = oldNegative[-1]
+                oldNeutral = results.neutral
+                oldNeutral =  list(oldNeutral)[::-1]
+                oldNeutral = oldNeutral[-1]
+
                 completed = Result_model(user,search,positive,negative,neutral) 
                 db.session.add(completed)
                 db.session.commit() 
+
                 return render_template('/results.html',ress = ress, search = search ,positive=positive,negative=negative,neutral=neutral,oldPositive=oldPositive,oldNegative=oldNegative,oldNeutral=oldNeutral,text = [df.to_html()])
-            else:
-                    results = all_results[-1]
-                    oldPositive = results.positive
-                    oldPositive =  list(oldPositive)[::-1]
-                    oldPositive =   oldPositive[-1]
-                    oldNegative = results.negative
-                    oldNegative =  list(oldNegative)[::-1]
-                    oldNegative = oldNegative[-1]
-                    oldNeutral = results.neutral
-                    oldNeutral =  list(oldNeutral)[::-1]
-                    oldNeutral = oldNeutral[-1]
 
-                    completed = Result_model(user,search,positive,negative,neutral) 
-                    db.session.add(completed)
-                    db.session.commit() 
-
-                    return render_template('/results.html',ress = ress, search = search ,positive=positive,negative=negative,neutral=neutral,oldPositive=oldPositive,oldNegative=oldNegative,oldNeutral=oldNeutral,text = [df.to_html()])
-        else:
-            return render_template('/search-user.html')
     return render_template('/search-user.html')    
 
 
@@ -313,6 +311,6 @@ if __name__ == "__main__":
     #when finished remove this 
     db.create_all()
     
-    app.run()
+    app.run(debug=True)
 
   
