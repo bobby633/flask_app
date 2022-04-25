@@ -1,0 +1,126 @@
+{% extends 'template.html' %}
+{%block title%}Sentiment Analysis{%endblock%}
+
+{%block content%}
+<p class = "title-name">Sentiment Analysis Results</p><br><p class = "subtitle"> for  "{{search}}"</p>
+<div class = "columns">
+  <div class = "result-border">
+    <p class= "result-text" >Bar Chart</p>
+     <section> <canvas id = "bar" class = "bar-chart"  width="200" height="200"> </canvas></section>
+
+  </div>
+  <div class = "result-border">
+    <p class= "result-text" >Pie Chart</p>
+    <section>    <canvas id = "pie" class = "bar-chart"  width="200" height="200"> </canvas></section> 
+       
+  </div>
+  <div class = "result-border">  
+      <p class= "result-text" > previous {{search}}</p>
+    <section> <canvas id = "compare-bar" class = "bar-chart"  width="200" height="200"> </canvas></section>
+
+  
+ </div>
+ <div class = "result-border" >
+   <p class= "result-text" >Text + Sentiment<p>
+   {%for result in text%}
+   <p>{{result | safe}}</p>
+     {% endfor %}
+</div>
+  
+    </div>
+
+    <p class = "result-mini-title-positive"> positive = {{positive}} </p>
+    <p class = "result-mini-title-negative"> negative = {{negative}} </p>
+    <p class = "result-mini-title-neutral"> neutral = {{neutral}}</p>
+   
+  </br>
+  
+    
+<script>
+     console.log({{oldPositive}},{{oldNegative}},{{oldNeutral}});
+
+     const compareData = {
+      labels: ["positive","negative","neutral"],
+      datasets: [{
+        data: [{{oldPositive}},{{oldNegative}},{{oldNeutral}}],
+        backgroundColor: [
+          '#23DC91',
+          '#DC236E',
+          '#747C8B'
+        ],
+        borderColor: [
+          'rgb(255, 99, 132)',
+          'rgb(255, 159, 64)',
+          'rgb(255, 205, 86)'
+
+        ],
+        borderWidth: 1
+      }]
+    };
+  var Mixed = document.getElementById('compare-bar').getContext('2d');
+  var MixedChart = new Chart(Mixed, {type: 'bar', data: compareData, options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    },});
+
+
+
+
+        const data = {
+                labels: ["positive","negative","neutral"],
+                datasets: [{
+                  label: 'Sentiment Analysis',
+                  data: [{{positive}},{{negative}},{{neutral}}],
+                  backgroundColor: [
+                    '#23DC91',
+                    '#DC236E',
+                    '#747C8B'
+                  ],
+                  borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)'
+
+                  ],
+                  borderWidth: 1
+                }]
+              };
+            var Mixed = document.getElementById('bar').getContext('2d');
+            var MixedChart = new Chart(Mixed, {type: 'bar', data: data, options: {
+                scales: {
+                  y: {
+                    beginAtZero: true
+                  }
+                }
+              },});
+
+              /////Pie
+              const piedata = {
+                datasets: [{
+                  data: [{{positive}},{{negative}},{{neutral}}],
+                  labels: ["positive","negative","neutral"],
+                  backgroundColor: [
+                    '#23DC91',
+                    '#DC236E',
+                    '#747C8B'
+                  ],
+                  
+                 
+                }]
+              };
+              var pie = document.getElementById('pie').getContext('2d');
+              var pieChart = new Chart(pie, {type: 'pie', data: piedata});
+        
+
+
+
+
+
+        </script>
+
+
+    
+{%endblock content%}

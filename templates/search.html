@@ -1,0 +1,18 @@
+{% extends 'template.html' %}
+{%block title%}Sentiment Analysis{%endblock%}
+
+{%block content%}
+<p class ="title-name">Search for a Term</p>
+        <div class = "content">
+           
+            <form  method = "POST" action = "/search" class = "search-bar">
+                <input type = "text" placeholder = "Search..." autocomplete="off" class = "search-bar-input" name = "search" required/>
+                <input type = "number" name="amount" required class = "amount" placeholder = "0">
+                
+                <button class = "search-bar-button"><img src="https://www.freeiconspng.com/uploads/search-icon-png-21.png" width="30" alt="Search Free Icon Image"  /></button>
+            </form>
+        </div>
+        
+        
+    
+{%endblock content%}

@@ -1,0 +1,15 @@
+{% extends 'template.html' %}
+{%block title%}Sentiment Analysis{%endblock%}
+
+{%block content%}
+<p class = "title-name">Log In</p>
+<p class = "subtitle"> Dont have an account? <a href = "/signup" >Click here</a></p>
+<p class = "warning">{{warning}}<p>
+<form action = "/login" method = "POST" class = "form">
+<input type = "name" required placeholder = " enter name" name = "name"/>
+<input type = "password"  required placeholder = " enter password" name = "password" />
+<input type = "submit" value = "submit" />
+
+</form>
+
+{%endblock content%}

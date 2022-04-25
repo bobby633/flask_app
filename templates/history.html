@@ -1,0 +1,26 @@
+{% extends 'template.html' %}
+{%block title%}Sentiment Analysis{%endblock%}
+
+{%block content%}
+<p class ="title-name">Search a previous Term</p>
+        <div class = "content">
+           
+            <form  method = "POST" action = "/history" class = "search-bar">
+                <input type = "text" placeholder = "Search..." autocomplete="off" class = "search-bar-input" name = "search" required/>                
+                <button class = "search-bar-button"><img src="https://www.freeiconspng.com/uploads/search-icon-png-21.png" width="30" alt="Search Free Icon Image"  /></button>
+            </form>
+        </div>
+        <div class = "history">
+        {% for item in values%}
+         <div ><p>
+             <p>Search : {{item.search}}
+            <p class = "history-positive"> Positive : {{item.positive}}</p>
+            <p class = "history-negative"> Negative :{{item.negative}} </p>
+            <p class = "history-neutral"> Neutral :{{item.neutral}}</p>
+             Date {{item.searched_at}}</p></div>
+        {%endfor%}
+    </div>
+   
+        
+    
+{%endblock content%}
